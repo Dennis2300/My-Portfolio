@@ -1,26 +1,126 @@
+import { useEffect } from 'react';
+import $ from 'jquery';
+import './../styles/LandingPage.css';
+
 export default function LandingPage() {
+
+  useEffect(() => {
+    class StickyNavigation {
+
+      constructor() {
+        this.currentId = null;
+        this.currentTab = null;
+        this.tabContainerHeight = 70;
+        let self = this;
+        $('.et-hero-tab').click(function (event) {
+          self.onTabClick(event, $(this));
+        });
+        $(window).scroll(() => { this.onScroll(); });
+        $(window).resize(() => { this.onResize(); });
+      }
+
+      onTabClick(event, element) {
+        event.preventDefault();
+        let scrollTop = $(element.attr('href')).offset().top - this.tabContainerHeight + 1;
+        $('html, body').animate({ scrollTop: scrollTop }, 600);
+      }
+
+      onScroll() {
+        this.checkTabContainerPosition();
+        this.findCurrentTabSelector();
+      }
+
+      onResize() {
+        if (this.currentId) {
+          this.setSliderCss();
+        }
+      }
+
+      checkTabContainerPosition() {
+        let offset = $('.et-hero-tabs').offset().top + $('.et-hero-tabs').height() - this.tabContainerHeight;
+        if ($(window).scrollTop() > offset) {
+          $('.et-hero-tabs-container').addClass('et-hero-tabs-container--top');
+        }
+        else {
+          $('.et-hero-tabs-container').removeClass('et-hero-tabs-container--top');
+        }
+      }
+
+      findCurrentTabSelector() {
+        let newCurrentId;
+        let newCurrentTab;
+        let self = this;
+        $('.et-hero-tab').each(function () {
+          let id = $(this).attr('href');
+          let offsetTop = $(id).offset().top - self.tabContainerHeight;
+          let offsetBottom = $(id).offset().top + $(id).height() - self.tabContainerHeight;
+          if ($(window).scrollTop() > offsetTop && $(window).scrollTop() < offsetBottom) {
+            newCurrentId = id;
+            newCurrentTab = $(this);
+          }
+        });
+        if (this.currentId != newCurrentId || this.currentId === null) {
+          this.currentId = newCurrentId;
+          this.currentTab = newCurrentTab;
+          this.setSliderCss();
+        }
+      }
+
+      setSliderCss() {
+        let width = 0;
+        let left = 0;
+        if (this.currentTab) {
+          width = this.currentTab.css('width');
+          left = this.currentTab.offset().left;
+        }
+        $('.et-hero-tab-slider').css('width', width);
+        $('.et-hero-tab-slider').css('left', left);
+      }
+
+    }
+
+    new StickyNavigation();
+  }, []);
+
   return (
-    <>
-      <div
-        className="hero min-h-screen"
-        style={{
-          backgroundImage:
-            "url(https://images.unsplash.com/photo-1719733250222-d7f51c02a4ce?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D)",
-        }}
-      >
-        <div className="hero-overlay bg-opacity-60"></div>
-        <div className="hero-content text-neutral-content text-center">
-          <div className="max-w-md">
-            <h1 className="mb-5 text-5xl font-bold">Hello there</h1>
-            <p className="mb-5">
-              Provident cupiditate voluptatem et in. Quaerat fugiat ut assumenda
-              excepturi exercitationem quasi. In deleniti eaque aut repudiandae
-              et a id nisi.
-            </p>
-            <button className="btn btn-primary">Get Started</button>
-          </div>
+    <div>
+      {/* Hero */}
+      <section className="et-hero-tabs">
+        <h1>STICKY SLIDER NAV</h1>
+        <h3>Sliding content with sticky tab nav</h3>
+        <div className="et-hero-tabs-container">
+          <a className="et-hero-tab" href="#tab-es6">ES6</a>
+          <a className="et-hero-tab" href="#tab-flexbox">Flexbox</a>
+          <a className="et-hero-tab" href="#tab-react">React</a>
+          <a className="et-hero-tab" href="#tab-angular">Angular</a>
+          <a className="et-hero-tab" href="#tab-other">Other</a>
+          <span className="et-hero-tab-slider"></span>
         </div>
-      </div>
-    </>
+      </section>
+
+      {/* Main */}
+      <main className="et-main">
+        <section className="et-slide" id="tab-es6">
+          <h1>ES6</h1>
+          <h3>something about es6</h3>
+        </section>
+        <section className="et-slide" id="tab-flexbox">
+          <h1>Flexbox</h1>
+          <h3>something about flexbox</h3>
+        </section>
+        <section className="et-slide" id="tab-react">
+          <h1>React</h1>
+          <h3>something about react</h3>
+        </section>
+        <section className="et-slide" id="tab-angular">
+          <h1>Angular</h1>
+          <h3>something about angular</h3>
+        </section>
+        <section className="et-slide" id="tab-other">
+          <h1>Other</h1>
+          <h3>something about other</h3>
+        </section>
+      </main>
+    </div>
   );
 }

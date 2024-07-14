@@ -13,6 +13,7 @@
     "autoprefixer": "^10.4.19",
     "daisyui": "^4.12.10",
     "install": "^0.13.0",
+    "jquery": "^3.7.1",
     "npm": "^10.8.1",
     "postcss": "^8.4.39",
     "react": "^18.3.1",
