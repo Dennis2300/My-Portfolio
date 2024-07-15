@@ -1,33 +1,47 @@
-import { useEffect } from 'react';
-import $ from 'jquery';
-import './../styles/LandingPage.css';
+import { useEffect } from "react";
+import "./../styles/LandingPage.css";
+
+//Components
+import LandingPageChild1 from "../components/Landingpage_child/LandingPageChild1";
 
 export default function LandingPage() {
-
   useEffect(() => {
     class StickyNavigation {
-
       constructor() {
         this.currentId = null;
         this.currentTab = null;
         this.tabContainerHeight = 70;
-        let self = this;
-        $('.et-hero-tab').click(function (event) {
-          self.onTabClick(event, $(this));
+        this.tabs = document.querySelectorAll(".et-hero-tab");
+        this.tabContainer = document.querySelector(".et-hero-tabs-container");
+        this.tabSlider = document.querySelector(".et-hero-tab-slider");
+        this.sections = document.querySelectorAll(".et-slide");
+        this.scrollHandler = this.onScroll.bind(this);
+        this.resizeHandler = this.onResize.bind(this);
+        this.init();
+      }
+
+      init() {
+        this.tabs.forEach((tab) => {
+          tab.addEventListener("click", (event) => this.onTabClick(event, tab));
         });
-        $(window).scroll(() => { this.onScroll(); });
-        $(window).resize(() => { this.onResize(); });
+        window.addEventListener("scroll", this.scrollHandler);
+        window.addEventListener("resize", this.resizeHandler);
+        this.observer = new IntersectionObserver(
+          this.onIntersection.bind(this),
+          { threshold: 0.6 }
+        );
+        this.sections.forEach((section) => this.observer.observe(section));
       }
 
       onTabClick(event, element) {
         event.preventDefault();
-        let scrollTop = $(element.attr('href')).offset().top - this.tabContainerHeight + 1;
-        $('html, body').animate({ scrollTop: scrollTop }, 600);
+        const target = document.querySelector(element.getAttribute("href"));
+        const scrollTop = target.offsetTop - this.tabContainerHeight + 1;
+        window.scrollTo({ top: scrollTop, behavior: "smooth" });
       }
 
       onScroll() {
         this.checkTabContainerPosition();
-        this.findCurrentTabSelector();
       }
 
       onResize() {
@@ -37,63 +51,79 @@ export default function LandingPage() {
       }
 
       checkTabContainerPosition() {
-        let offset = $('.et-hero-tabs').offset().top + $('.et-hero-tabs').height() - this.tabContainerHeight;
-        if ($(window).scrollTop() > offset) {
-          $('.et-hero-tabs-container').addClass('et-hero-tabs-container--top');
-        }
-        else {
-          $('.et-hero-tabs-container').removeClass('et-hero-tabs-container--top');
+        const offset =
+          this.tabContainer.offsetTop +
+          this.tabContainer.offsetHeight -
+          this.tabContainerHeight;
+        if (window.scrollY > offset) {
+          this.tabContainer.classList.add("et-hero-tabs-container--top");
+        } else {
+          this.tabContainer.classList.remove("et-hero-tabs-container--top");
         }
       }
 
-      findCurrentTabSelector() {
-        let newCurrentId;
-        let newCurrentTab;
-        let self = this;
-        $('.et-hero-tab').each(function () {
-          let id = $(this).attr('href');
-          let offsetTop = $(id).offset().top - self.tabContainerHeight;
-          let offsetBottom = $(id).offset().top + $(id).height() - self.tabContainerHeight;
-          if ($(window).scrollTop() > offsetTop && $(window).scrollTop() < offsetBottom) {
-            newCurrentId = id;
-            newCurrentTab = $(this);
+      onIntersection(entries) {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            const id = entry.target.getAttribute("id");
+            const currentTab = document.querySelector(
+              `.et-hero-tab[href="#${id}"]`
+            );
+            if (this.currentId !== `#${id}`) {
+              this.currentId = `#${id}`;
+              this.currentTab = currentTab;
+              this.setSliderCss();
+            }
           }
         });
-        if (this.currentId != newCurrentId || this.currentId === null) {
-          this.currentId = newCurrentId;
-          this.currentTab = newCurrentTab;
-          this.setSliderCss();
-        }
       }
 
       setSliderCss() {
-        let width = 0;
-        let left = 0;
         if (this.currentTab) {
-          width = this.currentTab.css('width');
-          left = this.currentTab.offset().left;
+          const { width, left } = this.currentTab.getBoundingClientRect();
+          this.tabSlider.style.width = `${width}px`;
+          this.tabSlider.style.left = `${left}px`;
         }
-        $('.et-hero-tab-slider').css('width', width);
-        $('.et-hero-tab-slider').css('left', left);
       }
 
+      destroy() {
+        window.removeEventListener("scroll", this.scrollHandler);
+        window.removeEventListener("resize", this.resizeHandler);
+        this.tabs.forEach((tab) =>
+          tab.removeEventListener("click", this.onTabClick)
+        );
+        this.sections.forEach((section) => this.observer.unobserve(section));
+      }
     }
 
-    new StickyNavigation();
+    const stickyNavigation = new StickyNavigation();
+
+    return () => {
+      stickyNavigation.destroy();
+    };
   }, []);
 
   return (
     <div>
       {/* Hero */}
       <section className="et-hero-tabs">
-        <h1>STICKY SLIDER NAV</h1>
-        <h3>Sliding content with sticky tab nav</h3>
+          <LandingPageChild1 />
         <div className="et-hero-tabs-container">
-          <a className="et-hero-tab" href="#tab-es6">ES6</a>
-          <a className="et-hero-tab" href="#tab-flexbox">Flexbox</a>
-          <a className="et-hero-tab" href="#tab-react">React</a>
-          <a className="et-hero-tab" href="#tab-angular">Angular</a>
-          <a className="et-hero-tab" href="#tab-other">Other</a>
+          <a className="et-hero-tab" href="#tab-es6">
+            Pictures
+          </a>
+          <a className="et-hero-tab" href="#tab-flexbox">
+            Drone Shots
+          </a>
+          <a className="et-hero-tab" href="#tab-react">
+            React
+          </a>
+          <a className="et-hero-tab" href="#tab-angular">
+            Angular
+          </a>
+          <a className="et-hero-tab" href="#tab-other">
+            Other
+          </a>
           <span className="et-hero-tab-slider"></span>
         </div>
       </section>
